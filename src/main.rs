@@ -1,14 +1,15 @@
 mod math;
 
 use image::{GenericImage, GenericImageView, ImageReader, Rgba, RgbaImage};
-use std::println;
+use std::{env, println};
 
 use crate::math::rbg_mean;
 
-type Coords = [u128; 2];
+// TODO handle errors for segments larger than the target image
 
 fn main() {
-    const SECTION_NUM: u32 = 180;
+    let args: Vec<String> = env::args().collect();
+    let section_size: u32 = args[1].parse::<u32>().unwrap();
 
     let img = ImageReader::open("test.png").unwrap();
 
@@ -17,29 +18,21 @@ fn main() {
 
     println!("dimensions: {:?}, {:?}", width, height);
 
-    let segment_size = (width * height) / SECTION_NUM;
+    let segment_height = height / section_size;
+    let segment_width = width / section_size;
 
-    println!("Segment size: {:?}", segment_size);
+    println!("Segment size: {:?}, {:?}", segment_width, segment_height);
     let mut imgbuf: RgbaImage = image::ImageBuffer::new(width, height);
-    let segments: Vec<(u32, u32, u32, Rgba<u8>)> = vec![];
-    let rows: u32 = height / segment_size;
-    let cols: u32 = width / segment_size;
-    for ci in 0..cols {
-        for i in 0..rows {
-            //let mut pixel_rgbs: Vec<Rgba<u32>> = vec![];
-
-            let sub_img = &decoded.crop(
-                i * segment_size,
-                ci * segment_size,
-                segment_size,
-                segment_size,
-            );
+    for y in (0..height).step_by(segment_height as usize) {
+        for x in (0..width).step_by(segment_width as usize) {
+            let current_width = segment_width.min(width - x);
+            let current_height = segment_height.min(height - y);
+            let mut sub_img = decoded.crop(x, y, current_width, current_height);
             let mut pixel_r: Vec<u32> = vec![];
             let mut pixel_g: Vec<u32> = vec![];
             let mut pixel_b: Vec<u32> = vec![];
             let mut pixel_a: Vec<u32> = vec![];
-            for (idx, pixel) in sub_img.pixels().enumerate() {
-                println!("Calulating pixel no. {:?}...", idx);
+            for pixel in sub_img.pixels() {
                 pixel_r.push((pixel.2.0[0] as u32).try_into().unwrap());
                 pixel_g.push((pixel.2.0[1] as u32).try_into().unwrap());
                 pixel_b.push((pixel.2.0[2] as u32).try_into().unwrap());
@@ -52,16 +45,21 @@ fn main() {
                 rbg_mean(&pixel_b).try_into().unwrap(),
                 rbg_mean(&pixel_a).try_into().unwrap(),
             ]);
-            println!("RGBA value of segment {:?} is {:?}", i, segment_rgb);
-            //sub_img.put_pixel(x, y, pixel);
+            let (sub_width, sub_height) = sub_img.dimensions();
+
+            for y in 0..sub_height {
+                for x in 0..sub_width {
+                    sub_img.put_pixel(x, y, segment_rgb);
+                }
+            }
+
+            imgbuf
+                .copy_from(&sub_img, x, y)
+                .expect("Couldn't copy segment!");
         }
     }
 
-    for (idx, pixel) in decoded.pixels().enumerate() {
-        let seg_num_x = pixel.0 / segment_size;
-        let seg_num_y = pixel.1 / segment_size;
+    imgbuf.save("output.png").expect("Couldn't save img!");
 
-        println!("{:?}", pixel);
-    }
-    println!("image size: {}x{}", width, height);
+    println!("Image size: {}x{}", width, height);
 }
