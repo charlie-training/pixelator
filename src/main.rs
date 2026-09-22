@@ -9,7 +9,7 @@ use crate::math::rbg_mean;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let section_size: u32 = args[1].parse::<u32>().unwrap();
+    let section_size: u32 = args[1].parse::<u32>().unwrap_or(50);
 
     let img = ImageReader::open("test.png").unwrap();
 
@@ -59,7 +59,7 @@ fn main() {
         }
     }
 
-    imgbuf.save("output.png").expect("Couldn't save img!");
+    imgbuf.save("output.png").expect("Couldn't save image!");
 
     println!("Image size: {}x{}", width, height);
 }
