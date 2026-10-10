@@ -17,7 +17,7 @@ If forking the repo and running in development mode:
 cargo run <image_path> <pixel_value>
 ```
 
-Where `image_path` is the relative or absolute path to the target image file (including extension), and `pixel_value` is the number of pixels to generate per axis (e.g. a lower value means fewer overall pixels and less fidelity in the output).
+Where `image_path` is the relative (to the host process) or absolute path to the target image file (including extension), and `pixel_value` is the number of pixels to generate per axis (e.g. a lower value means fewer overall pixels and less fidelity in the output).
 
 ## Examples
 
