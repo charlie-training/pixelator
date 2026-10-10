@@ -1,27 +1,31 @@
 mod math;
 
 use image::{GenericImage, GenericImageView, ImageReader, Rgba, RgbaImage};
-use std::{env, println};
+use std::{env, path::Path, println};
 
 use crate::math::rbg_mean;
 
 // TODO handle errors for segments larger than the target image
-
+const OUTPUT_NAME: &str = "output.png";
 fn main() {
     let args: Vec<String> = env::args().collect();
     let section_size: u32 = args[1].parse::<u32>().unwrap_or(50);
-
-    let img = ImageReader::open("test.png").unwrap();
+    let file_string = String::from(&args[2]);
+    let file_path = Path::new(&file_string);
+    let img = ImageReader::open(file_path).unwrap();
 
     let mut decoded = img.decode().unwrap();
     let (width, height) = decoded.dimensions();
 
-    println!("dimensions: {:?}, {:?}", width, height);
+    println!("Original dimensions: {:?}px x {:?}px", width, height);
 
     let segment_height = height / section_size;
     let segment_width = width / section_size;
 
-    println!("Segment size: {:?}, {:?}", segment_width, segment_height);
+    println!(
+        "Segment size: {:?}px x {:?}px",
+        segment_width, segment_height
+    );
     let mut imgbuf: RgbaImage = image::ImageBuffer::new(width, height);
     for y in (0..height).step_by(segment_height as usize) {
         for x in (0..width).step_by(segment_width as usize) {
@@ -59,7 +63,10 @@ fn main() {
         }
     }
 
-    imgbuf.save("output.png").expect("Couldn't save image!");
+    imgbuf.save(OUTPUT_NAME).expect("Couldn't save image!");
 
-    println!("Image size: {}x{}", width, height);
+    println!(
+        "Image saved to {}, size: {}px x {}px",
+        OUTPUT_NAME, width, height
+    );
 }
