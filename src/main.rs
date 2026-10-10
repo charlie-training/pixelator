@@ -9,9 +9,9 @@ use crate::math::rbg_mean;
 const OUTPUT_NAME: &str = "output.png";
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let section_size: u32 = args[1].parse::<u32>().unwrap_or(50);
-    let file_string = String::from(&args[2]);
+    let file_string = String::from(&args[1]);
     let file_path = Path::new(&file_string);
+    let section_size: u32 = args[2].parse::<u32>().unwrap();
     let img = ImageReader::open(file_path).unwrap();
 
     let mut decoded = img.decode().unwrap();
