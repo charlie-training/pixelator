@@ -1,11 +1,11 @@
 mod math;
 
+use core::panic;
 use image::{GenericImage, GenericImageView, ImageReader, Rgba, RgbaImage};
 use std::{env, path::Path, println};
 
 use crate::math::rbg_mean;
 
-// TODO handle errors for segments larger than the target image
 const OUTPUT_NAME: &str = "output.png";
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -17,6 +17,12 @@ fn main() {
     let mut decoded = img.decode().unwrap();
     let (width, height) = decoded.dimensions();
 
+    if width < section_size || height < section_size {
+        panic!(
+            "Error: section size {} greater than image dimensions: {} x {}!",
+            section_size, width, height
+        )
+    }
     println!("Original dimensions: {:?}px x {:?}px", width, height);
 
     let segment_height = height / section_size;
